@@ -15,6 +15,6 @@
 使用方法：
 
 ```
-pip instal -r requirement.txt
+pip install -r requirement.txt
 python iwara.py
 ```
