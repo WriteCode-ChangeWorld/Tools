@@ -92,6 +92,8 @@ class mzitu():
 
         # 套图目录下有对应num张的图片则跳过该套图下载
         if len(os.listdir(self.folder_path)) == num:
+            # 休眠
+            time.sleep(0.1)
             return 
         
         for i in range(1,num+1):
