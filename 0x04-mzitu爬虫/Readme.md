@@ -39,3 +39,12 @@ python mzitu.py
 ```
 
 中途停止可用`CTRL`+`C`大法进行中断，下次再运行继续下载即可
+
+
+
+运行截图
+
+![](https://i.loli.net/2021/02/14/X4tmjnhFORMaVAb.png)
+
+![](https://i.loli.net/2021/02/14/5lkoqCuDi7hzNZS.png)
+

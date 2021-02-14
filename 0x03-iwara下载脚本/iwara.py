@@ -314,6 +314,7 @@ class IwaraDownloader:
 		try:
 			if os.path.exists(file_path) and os.path.getsize(file_path) > 100000:
 				log_str("【{}】已存在".format(title))
+				return 
 			else:
 				log_str("【{}】正在下载".format(title))
 				data = self.get_data(link)
