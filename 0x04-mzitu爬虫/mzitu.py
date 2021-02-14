@@ -49,10 +49,10 @@ class mzitu():
                 continue
 
             for page_data in page_result:
+                print("正在下载【{}】--{}".format(page_data["name"],page_data["href"]))
                 # 创建套图文件夹
                 self.folder_path = self.create_folder(page_data["name"])
                 # 获取套图的所有图片链接
-                print("正在下载【{}】--{}".format(page_data["name"],page_data["href"]))
                 self.get_img_href(page_data["href"])
                 # break
                 
@@ -91,7 +91,7 @@ class mzitu():
         num = int(obj.xpath(num_expression)[-2])
 
         # 套图目录下有对应num张的图片则跳过该套图下载
-        if os.listdir(self.folder_path) == num:
+        if len(os.listdir(self.folder_path)) == num:
             return 
         
         for i in range(1,num+1):
