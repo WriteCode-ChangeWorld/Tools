@@ -130,6 +130,7 @@ doc = [
 ]
 
 resp = se.get(url).text
+print(resp)
 j = json.loads(resp)
 
 data = []
