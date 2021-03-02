@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import requests
 from lxml import etree
@@ -49,13 +50,18 @@ class GCA:
 		self.title_expression = """.//h3//a/text()"""
 		# video封面&video链接
 		self.video_cover_expression = """//span[@class='arve-embed']/meta[@itemprop="thumbnailUrl"]/@content"""
+		self.video_cover_expression_second = """//figure[@class="wp-block-video"]/video/@poster"""
+
 		self.video_url_expression = """//span[@class='arve-embed']/meta[@itemprop="contentURL"]/@content"""
+		self.video_url_expression_second = """//figure[@class="wp-block-video"]/video/@src"""
 
 	def download(self,path,content):
 		with open(path,"wb") as f:
 			f.write(content)
 
 	def folder(self,title):
+		title = re.sub(r'[\/:*?"<>|]','',title)
+		title = title.replace(".","")
 		target = os.path.join(self.root_path,title)
 		isExists = os.path.exists(target)
 		if not isExists:
@@ -110,7 +116,6 @@ class GCA:
 			# break # 测试
 			time.sleep(1)
 
-		# log_str(len(all_info_list))
 		if all_info_list == []:
 			log_str("获取到的文章为空,可能是网站结构发现变化或其他原因")
 			exit()
@@ -120,24 +125,29 @@ class GCA:
 		视频 --> article_url(文章链接),title(密码) --> 后面获取的视频链接
 		"""
 		for index,info in enumerate(all_info_list):
-		# for index,info in enumerate(all_info_list[:3]):
 			log_str("({}/{}){} {} ".format(index+1,len(all_info_list),info["title"],info["article_url"]))
 			if info["article_url"] == "" and info["title"] == "":
 				log_str("当前文章标题及链接获取有误,将跳过")
 				continue
 
-			# 创建文章文件夹
+			# 创建文章文件夹,title过滤一些字符
 			article_path = self.folder(info["title"])
-			# 获取页面解密后的html
-			obj = etree.HTML(self.get_html(info["article_url"],info["title"]).text)
+			# 获取页面解密后的html,原始title用于解密
+			resp = self.get_html(info["article_url"],info["title"])
+			obj = etree.HTML(resp.text)
+
 			# video_cover视频封面
 			try:
-				video_cover = obj.xpath(self.video_cover_expression)[0]
+				video_cover = obj.xpath(self.video_cover_expression)
+				if video_cover == []:
+					video_cover = obj.xpath(self.video_cover_expression_second)
 			except Exception as e:
 				video_cover = []
 			# video_url
 			try:
-				video_url = obj.xpath(self.video_url_expression)[0]
+				video_url = obj.xpath(self.video_url_expression)
+				if video_url == []:
+					video_url = obj.xpath(self.video_url_expression_second)
 			except Exception as e:
 				video_url = []
 
@@ -148,33 +158,37 @@ class GCA:
 			
 			# 下载视频封面video_cover
 			cover_path = os.path.join(article_path,"{}.jpg".format(info["title"]))
-			# log_str(cover_path)
 			if os.path.exists(cover_path) == False or os.path.getsize(cover_path) < 1000:
 				try:
+					video_cover = video_cover[0]
 					cover_content = net_requests(options={"url":video_cover}).content
 					self.download(cover_path,cover_content)
 					log_str("视频封面下载完成")
 				except Exception as e:
 					log_str("video_cover: {}".format(video_cover))
+					log_str(e)
 			else:
-				log_str("视频封面已存在")
+				pass
+				# log_str("视频封面已存在")
 
 			# 下载视频
 			video_path = os.path.join(article_path,"{}.mp4".format(info["title"]))
-			# log_str(video_path)
 			if os.path.exists(video_path) == False or os.path.getsize(video_path) < 1000:
 				try:
+					video_url = video_url[0]
 					video_content = net_requests(options={"url":video_url}).content
 					self.download(video_path,video_content)
 					log_str("视频下载完成")
+					time.sleep(3)
 				except Exception as e:
 					log_str("video_url: {}".format(video_url))
+					log_str(e)
 			else:
-				log_str("视频已存在")
+				pass
+				# log_str("视频已存在")
 
 			# break # 测试
-			time.sleep(1)
-
+			
 		
 gca = GCA()
 gca.main()
