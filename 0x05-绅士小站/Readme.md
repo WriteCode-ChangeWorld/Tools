@@ -39,7 +39,7 @@ python gca.py
 
 ![](https://i.loli.net/2021/03/02/ZaKRd5vC9T6xpzm.jpg)
 
-![](https://i.loli.net/2021/03/02/lNXZvbWGLYO84dF.png)
+![](https://i.loli.net/2021/03/03/yIXxGib9nJdH3wA.png)
 
 ![](https://i.loli.net/2021/03/02/ZTd5tesxwqU8NRJ.png)
 
