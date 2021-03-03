@@ -15,16 +15,15 @@ def log_str(*args,end=None):
     for i in args:
         print('[{}] {}'.format(time.strftime("%Y-%m-%d %H:%M:%S"),i),end=end)
 
-def net_requests(options,method="GET",data=None,params=None,headers=default_headers,retry_num=5):
+def net_requests(options,method="GET",data=None,headers=default_headers,stream=False,retry_num=5):
 	try:
 		# se = requests.session()
 		response = requests.request(
 				method,
 				options["url"],
 				data = data,
-				params = params,
-				# cookies = options.get("cookies",""),
 				headers = headers,
+				stream = stream,
 				verify = False,
 				timeout = 10,
 			)
@@ -32,9 +31,30 @@ def net_requests(options,method="GET",data=None,params=None,headers=default_head
 		return response
 	except Exception as e:
 		if retry_num > 0:
-			return net_requests(options,method,data,params,headers,retry_num-1)
+			return net_requests(options,method,data,headers,stream,retry_num-1)
 		else:
-			return "网络请求出错 url:{}".format(options["url"])
+			log_str("网络请求出错 url:{}".format(options["url"]))
+			return None
+
+def stream_process(word,url,path):
+	# 每次最大请求字节
+	chunk_size = 1024
+	# 网络请求
+	response = net_requests(options={"url":url},stream=True)
+	if response == None:
+		return "NetWorkError"
+	# 获得本次请求的字节
+	content_size = int(response.headers['content-length'])
+	data_count = 0
+	
+	with open(path, "wb") as file:
+		for data in response.iter_content(chunk_size=chunk_size):
+			file.write(data)
+			data_count = data_count + len(data)
+			now = (data_count / content_size) * 100
+			print("\r%s下载进度:%d%%" % (word,now), end=" ")
+	print("—— {}下载完成".format(word))
+	return response
 
 
 class GCA:
@@ -120,6 +140,7 @@ class GCA:
 			log_str("获取到的文章为空,可能是网站结构发现变化或其他原因")
 			exit()
 
+		# ============# start ============ #
 		"""
 		文件夹 --> title(文件夹名称)
 		视频 --> article_url(文章链接),title(密码) --> 后面获取的视频链接
@@ -161,9 +182,7 @@ class GCA:
 			if os.path.exists(cover_path) == False or os.path.getsize(cover_path) < 1000:
 				try:
 					video_cover = video_cover[0]
-					cover_content = net_requests(options={"url":video_cover}).content
-					self.download(cover_path,cover_content)
-					log_str("视频封面下载完成")
+					response = stream_process("视频封面",video_cover,cover_path)
 				except Exception as e:
 					log_str("video_cover: {}".format(video_cover))
 					log_str(e)
@@ -176,18 +195,19 @@ class GCA:
 			if os.path.exists(video_path) == False or os.path.getsize(video_path) < 1000:
 				try:
 					video_url = video_url[0]
-					video_content = net_requests(options={"url":video_url}).content
-					self.download(video_path,video_content)
-					log_str("视频下载完成")
+					response = stream_process("视频",video_url,video_path)
+					if response == "NetWorkError":
+						continue
 					time.sleep(3)
 				except Exception as e:
 					log_str("video_url: {}".format(video_url))
-					log_str(e)
+					log_str(e,response)
 			else:
 				pass
 				# log_str("视频已存在")
 
 			# break # 测试
+		# =============# end ============= #
 			
 		
 gca = GCA()
