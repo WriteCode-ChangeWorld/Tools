@@ -127,8 +127,8 @@ class GCA:
 				info = {"article_url":article_url,"title":title}
 				all_info_list.append(info)
 
-			# 最后一页不满60页,则跳出
-			if len(article_list) != 60:
+			# 最后一页小于60页,则跳出
+			if len(article_list) < 60:
 				log_str("全站文章获取完毕...共{}页{}个".format(offset,len(all_info_list)))
 				break
 
