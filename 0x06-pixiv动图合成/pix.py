@@ -85,6 +85,6 @@ if __name__ == '__main__':
 			exit()
 		elif pid == "q":
 			print("退出成功")
-			eixt()
+			exit()
 		else:
 			PG.main(pid=pid)
