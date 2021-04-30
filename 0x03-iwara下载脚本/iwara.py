@@ -217,7 +217,7 @@ class IwaraDownloader:
 
 		res = []
 		for h,t in zip(href_list,title_list):
-			res.append({"link":h,"title":"{}--{}".format(t,h.split("videos/")[-1])})
+			res.append({"link":h,"title":"{}--{}".format(t,h.split("videos/")[-1].split("?")[0])})
 
 		# log_str("{}: Exit Function".format(getFunctionName()))
 		return res,page_num
@@ -388,15 +388,6 @@ class IwaraDownloader:
 			log_str("Exception {} line:{}".format(e,getFunctionName(extra=True)))
 		finally:
 			pool.close()
-
-		# iwara = []
-		# for l in links[::-1]:
-		# 	if "ecchi.iwara.tv/users" in l:
-		# 		for r in self.get_links(l):
-		# 			iwara.append(r)
-		# 	else:
-		# 		iwara.append(l)
-		# print(iwara)
 		
 
 if __name__ == '__main__':
