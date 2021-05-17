@@ -20,7 +20,7 @@ python 0x01监听剪贴板自动反代.py
 
 运行截图
 
-![](https://i.loli.net/2021/02/14/OkeWjDZn97izlxr.png)
+![](./img/1.png)
 
 
 

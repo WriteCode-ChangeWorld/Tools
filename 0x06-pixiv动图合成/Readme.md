@@ -34,8 +34,8 @@ python pix.py
 
 运行截图
 
-![](https://i.loli.net/2021/04/20/vGSKx6azLWFdB8N.png)
+![](./img/1.png)
 
 
 
-![](https://i.loli.net/2021/04/20/UiRHtZv8LDgFx9m.png)
+![](./img/2.png)

@@ -22,8 +22,8 @@ python iwara.py
 
 运行截图
 
-![](https://i.loli.net/2021/02/14/JWBYSiDvTnszgGP.png)
+![](./img/1.png)
 
-![](https://i.loli.net/2021/02/14/btBAhYiofgxrwPI.png)
+![](./img/2.png)
 
-![](https://i.loli.net/2021/02/14/s3lLv2nGotDhb5Q.png)
+![](./img/3.png)

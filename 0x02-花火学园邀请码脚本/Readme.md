@@ -4,11 +4,11 @@
 
 使用方法：
 
-![img](https://i.loli.net/2020/07/15/rcJkoVB3zGOeKME.png)
+![img](./img/1.png)
 
 
 
 如果题目不在题库，则会这样显示：
 
-![img](https://i.loli.net/2020/07/15/btrT53mBpnXOqWw.png)
+![img](./img/2.png)
 

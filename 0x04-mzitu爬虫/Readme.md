@@ -44,7 +44,7 @@ python mzitu.py
 
 运行截图
 
-![](https://i.loli.net/2021/02/14/X4tmjnhFORMaVAb.png)
+![](./img/1.png)
 
-![](https://i.loli.net/2021/02/14/5lkoqCuDi7hzNZS.png)
+![](./img/2.png)
 
