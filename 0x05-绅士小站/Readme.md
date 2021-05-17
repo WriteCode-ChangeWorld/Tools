@@ -37,9 +37,9 @@ python gca.py
 
 运行截图
 
-![](https://i.loli.net/2021/03/02/ZaKRd5vC9T6xpzm.jpg)
+<img src="https://i.loli.net/2021/03/02/ZaKRd5vC9T6xpzm.jpg"></img>
 
-![](https://i.loli.net/2021/03/03/yIXxGib9nJdH3wA.png)
+<img src="https://i.loli.net/2021/03/03/yIXxGib9nJdH3wA.png"></img>
 
-![](https://i.loli.net/2021/03/02/ZTd5tesxwqU8NRJ.png)
+<img src="https://i.loli.net/2021/03/02/ZTd5tesxwqU8NRJ.png"></img>
 
