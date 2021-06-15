@@ -60,6 +60,7 @@ def stream_process(word,url,path):
 class GCA:
 	"""绅士小站"""
 	def __init__(self):
+		self.HOST = "https://ca.gca.tw"
 		self.host = "https://ca.gca.tw/page/{}"
 		self.root_path = os.getcwd()
 
@@ -182,6 +183,7 @@ class GCA:
 			if os.path.exists(cover_path) == False or os.path.getsize(cover_path) < 1000:
 				try:
 					video_cover = video_cover[0]
+					video_cover = self.HOST + video_cover
 					response = stream_process("视频封面",video_cover,cover_path)
 				except Exception as e:
 					log_str("video_cover: {}".format(video_cover))
