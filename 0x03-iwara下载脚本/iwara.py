@@ -6,6 +6,9 @@ import time
 import requests
 from urllib.parse import unquote
 from lxml import etree
+# 强制取消警告
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from thread_pool import *
 
@@ -101,11 +104,13 @@ class IwaraDownloader:
 		try:
 			resp = requests.get(url,params=params,
 								headers=headers,
-								timeout=10,
-								stream=stream
+								timeout=20,
+								stream=stream,
+								verify=False
 								)
 		except Exception as e:
 			if retry_num >= 3:
+				log_str("{}: {} | 网络错误,重试".format(getFunctionName(),url))
 				return self.get_resp(url,params=params,headers=headers,retry_num=retry_num-1,stream=stream)
 			else:
 				log_str("{}: {} | 超出重试次数".format(getFunctionName(),url))
@@ -203,7 +208,7 @@ class IwaraDownloader:
 			try:
 				page_num = int(obj.xpath("//li[@class='pager-last last']//@href")[0].split("page=")[-1])
 			except:
-				log_str("{}: User Video PageNum Not NotFound".format(getFunctionName()))
+				log_str("{}: User Video PageNum Not Found".format(getFunctionName()))
 				# 最后一页或该用户视频数<=16,导致videos页面为空
 				page_num = 0
 
