@@ -9,7 +9,7 @@
 ↓ 如图，筛选一下<柴郡>，全是可爱的猫猫:happy:
 (会遗漏部分不是从`pixiv`上下载的插画，因为没有`tag`可筛选)
 
-![1.png](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\1.png)
+![1.png](.\img\1.png)
 
 + 这里给下数据参考。此处为使用`PixiC`下载`pixiv`个人收藏共`4.6w`张图片(`88G`)，导入Eagle后为`98G` (`Eagle`生成缩略图占用了`10G`)
 + 脚本默认使用8线程，处理以上数据花费时间 : `52min`(`13:05:34.040~13:57:52.723`)
@@ -46,7 +46,7 @@
 
 选中要加入的图片文件，拖拽到`Eagle`上即可；或从左上角选择路径载入
 
-![](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\0.png)
+![](.\img\0.png)
 
 
 
@@ -105,18 +105,18 @@ python pixiv2eagle.py
 
 脚本写入tag
 
-![](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\2.png)
+![](.\img\2.png)
 
 写入tag后在Eagle中的使用
 
 柴郡
 
-![](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\1.png)
+![](.\img\1.png)
 
 大凤
 
-![](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\4.png)
+![](.\img\4.png)
 
 支持联想tag
 
-![](D:\Code\Tools\0x09-Pixiv插画tag数据导入Eagle\img\3.png)
+![](.\img\3.png)
