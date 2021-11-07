@@ -18,4 +18,5 @@
 | 0x06-pixiv动图合成      | pixiv动图合成脚本                                            | 2021/4/20                              |
 | 0x07-绅士仓库           | 绅士仓库投稿抓取（不含下载）By [WolfBolin](https://github.com/wolfbolin) | 2021/6/30                              |
 | 0x08-绅士小站2          | 绅士小站爬虫（MySQL+Aria2）By [WolfBolin](https://github.com/wolfbolin) | 2021/7/2                               |
+| 0x09-pixiv2eagle        | Pixiv插画tag导入Eagle                                        | 2021/11/7                              |
 
