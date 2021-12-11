@@ -21,7 +21,7 @@ VERSION = "V1.0.4"
 # 如果需要下载private视频,则将自己的cookie填入此处
 cookie = ""
 # 设置为True 开启DEBUG模式
-DEBUG = False
+DEBUG = True
 
 
 # log config
@@ -206,6 +206,8 @@ class IwaraDownloader:
 				title_list = [re.sub('[\/:*?"<>|]','',r).
 								replace("&amp;","&").replace("\u3000","").
 								replace(" ","").replace(".","") for r in home_obj.xpath(title_expression)]
+				# 补充无Video Page的业务跳出条件
+				total_pageNum = -1
 			# 用户无视频
 			else:
 				logger.info("User Not Have Video")
