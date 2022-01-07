@@ -165,6 +165,7 @@ class encrypt_img:
 
         # 水平垂直翻转
         img = Tool.rotate(img, -1)
+        img = Tool.rotate(img,1)
 
         # 第一个vt坐标的序列
         vt_index = 0
@@ -267,7 +268,7 @@ class decrypt_img:
         height,weight = img.shape[0],img.shape[1]
 
         # 垂直翻转
-        img = cv2.flip(img, 0)
+        img = Tool.rotate(img,0)
 
         for i in range(1, len(mesh_data)):
             if mesh_data[i][0] != 'v':
@@ -313,6 +314,7 @@ class decrypt_img:
 
         # 水平垂直翻转
         Base_img = Tool.rotate(Base_img,-1)
+        Base_img = Tool.rotate(Base_img,1)
         Tool.save_png(final_png, Base_img)
         logger.info(f"处理完成: <{pic}> 路径: {final_png}")
 
