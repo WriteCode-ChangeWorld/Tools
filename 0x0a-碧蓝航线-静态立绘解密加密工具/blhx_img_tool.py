@@ -133,6 +133,9 @@ class tool:
 
 class encrypt_img:
     """封包 - 将修改好的立绘加密为碎片图"""
+    def __init__(self):
+        self.compensation = True
+
     def task(self, mesh_obj, pic):
         """
         :params mesh_obj: mesh文件名称
@@ -161,7 +164,12 @@ class encrypt_img:
         # 解密图 - 高,宽
         # height,weight = img.shape[0],img.shape[1]
         # 根据之前的加密图创建还原画布
-        max_height, max_weight = texture_img.shape[0],texture_img.shape[1]
+        try:
+            max_height, max_weight = texture_img.shape[0],texture_img.shape[1]
+        except Exception as e:
+            logger.warning("无法获取原加密文件尺寸信息")
+            logger.warning(f"请尝试将拆包出的<{pic}>加密文件放置于Used文件夹下")
+            return
 
         # 水平垂直翻转
         img = Tool.rotate(img, -1)
@@ -200,10 +208,12 @@ class encrypt_img:
             endy = abs(int(mesh_data[vjShu+2][1]))
             endx = abs(int(mesh_data[vjShu+2][2]))
             # 锁定粘贴的坐标 vt第一组
-            # y1 = int(float(mesh_data[vjShu-jShu+vt_index][1]) * float(max_weight))
-            y1 = int(float(mesh_data[vjShu-jShu+vt_index][1]) * float(max_weight) + 0.5)
-            # x1 = int(float(mesh_data[vjShu-jShu+vt_index][2]) * float(max_height))
-            x1 = int(float(mesh_data[vjShu-jShu+vt_index][2]) * float(max_height) + 0.5)
+            if self.compensation:
+                y1 = int(float(mesh_data[vjShu-jShu+vt_index][1]) * float(max_weight) + 0.5)
+                x1 = int(float(mesh_data[vjShu-jShu+vt_index][2]) * float(max_height) + 0.5)
+            else:
+                y1 = int(float(mesh_data[vjShu-jShu+vt_index][1]) * float(max_weight))
+                x1 = int(float(mesh_data[vjShu-jShu+vt_index][2]) * float(max_height))
 
             logger.debug(f"{vjShu},{firstx},{firsty},{endx},{endy},{x1},{y1}")
 
@@ -220,7 +230,10 @@ class encrypt_img:
         Tool.save_png(final_png, Base_img)
         logger.info(f"处理完成: <{pic}> 路径: {final_png}")
 
-    def main(self):
+    def main(self,compensation=True):
+        # compensation 默认开启0.5补偿
+        self.compensation = compensation
+
         material = Tool.get_material()
         Mesh_list = material.get("Mesh", [])
         Picture_list = material.get("Picture", [])
@@ -344,25 +357,28 @@ class manager:
     """处理流程"""
     help_info = """\n === 欢迎使用碧蓝航线立绘加解密工具 ===\n"""\
     """代码托管于: https://github.com/WriteCode-ChangeWorld/Tools 欢迎star~\n\n"""\
-    """ === 说明 === \n1.立绘解密: 将mesh文件 (如22.mesh.obj) 放在<Mesh>文件夹, 将加密文件"""\
+    """ ===== 说明 ===== \n1.立绘解密: 将mesh文件 (如22.mesh.obj) 放在<Mesh>文件夹, 将加密文件"""\
     """ (如:22.png) 放在<Texture2D>文件夹.  \n脚本执行完成后,解密文件在<Picture>文件夹.  """\
     """\n\n2.立绘加密: 将mesh文件 (如22.mesh.obj) 放在<Mesh>文件夹, 将魔改好或要替换立绘的解密文件"""\
     """ (如:22.png) 放在<Picture>文件夹, 同时将同名加密立绘文件 (如:22.png) 放在<Used>文件夹.  """\
     """\n脚本执行完成后,加密文件在<Texture2D>文件夹.  """\
-    """\n\n特别说明: 如果是先执行1再执行2, 通常程序会copy一份加密文件到<Used>文件夹. 此时不用再手动copy"""\
-    """\n\n === 回复数字以使用功能 === \n请将文件放置好后再运行本程序\n1.立绘解密还原\n2.立绘加密封包\n3.退出"""
+    """\n\n>> 特别说明: 如果是先执行1再执行2, 通常程序会copy一份加密文件到<Used>文件夹. 此时不用再手动copy <<"""\
+    """\n\n\n === 支持功能 === \n请将文件放置好后再运行本程序\n1.立绘解密还原\n2.立绘加密封包(+0.5补偿, 一般建议)"""\
+    """\n3.立绘加密封包(无0.5补偿, 使用<2>封包的图片有细微白线,可尝试使用该选项)\n4.退出"""\
+    """\n\n>> 特别说明: 针对<3>选项,请将封包后ok的图片移动到其他文件夹后再使用,以避免带来麻烦. <<"""
 
     def __init__(self):
         self.command_info = {
             "1": "Decrypt_Img.main()", # 解密还原
             "2": "Encrypt_Img.main()", # 加密封包
-            "3": "exit()"              # 退出
+            "3": "Encrypt_Img.main(compensation=False)", # 加密封包-无0.5补偿
+            "4": "exit()"              # 退出
         }
 
     def main(self):
         """主函数"""
         print(manager.help_info)
-        mode = input(": ")
+        mode = input("回复数字以使用功能: ")
         if str(mode) not in list(self.command_info.keys()):
             logger.warning(f"<mode>: {mode} 不在支持列表内,请重新输入或检查输入内容...")
             exit()
