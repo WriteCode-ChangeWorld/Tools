@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import time
+from numpy import size
 import requests
 from lxml import etree
 from loguru import logger
@@ -16,13 +17,17 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from thread_pool import *
 
 
+# ======================= CONFIG =================== #
 # Version
-VERSION = "V1.0.4"
+VERSION = "V1.0.5"
 # 如果需要下载private视频,则将自己的cookie填入此处
 cookie = ""
 # 设置为True 开启DEBUG模式
 DEBUG = False
-
+# 自定义下载路径
+ROOT_DIR = r""
+# thread num
+THREAD_NUM = 8
 
 # log config
 if DEBUG:
@@ -46,6 +51,43 @@ logger.add(
     enqueue=True,
     level=level
 )
+logger.add( 
+    os.path.join(log_path, "[ERROR video] {time}.log"),
+    encoding="utf-8",
+    rotation="00:00",
+    enqueue=True,
+    level="ERROR"
+)
+# ======================= CONFIG =================== #
+
+
+# 重试视频列表 - 视频完整性校验失败
+# [{"args":args, "count":count},{}...]
+RETRY_COUNT = 3
+ERR_TASK_LIST = []
+
+
+def check_video(resp, path)->bool:
+	"""
+	:params resp: 响应体
+	:params path: 本地视频
+	"""
+	local_size = int(os.path.getsize(path))
+	resp_size = int(resp.headers["content-length"])
+	logger.debug(f"{local_size} {resp_size}")
+	if local_size != resp_size:
+		return False
+	else:
+		return True
+
+def byte2size(value):
+	value = int(value)
+	units = ["B", "KB", "MB", "GB", "TB", "PB"]
+	size = 1024.0
+	for i in range(len(units)):
+		if (value/size) < 1:
+			return "%.2f%s" % (value, units[i])
+		value = value/size
 
 
 class IwaraDownloader:
@@ -81,7 +123,7 @@ class IwaraDownloader:
 			"user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3741.400 QQBrowser/10.5.3863.400",
 		}
 		# 添加用户自定义cookie,主要用于private视频获取
-		if cookie != "":
+		if cookie:
 			self.headers["cookie"] = cookie
 
 		# 需要下载的iwara链接列表
@@ -95,8 +137,8 @@ class IwaraDownloader:
 		logger.debug(f"输入链接 - {self.original_links}")
 
 		# 初始化下载主目录
-		if not os.path.exists("./down"):os.mkdir("./down")
-		self.root_path = os.path.join(os.getcwd(),"down")
+		self.root_path = os.path.abspath(__file__) if not ROOT_DIR else ROOT_DIR
+		if not os.path.exists(self.root_path):os.mkdir(self.root_path)
 
 		self.error_code_list = {
 			"ErrorVideoUrl": "无效的视频链接",
@@ -153,10 +195,10 @@ class IwaraDownloader:
 	def get_data(self,link):
 		"""
 		获取视频接口信息,返回原始视频链接和动态host
-		https://ecchi.iwara.tv/api/video/4kbwafpkz0tyv3k4m
-		:params link: video id
-		:return: source_url,host or None
+		:params link: iwara video url, https://ecchi.iwara.tv/videos/9jqbjse8qhzmo8ja
+		:return: [source_url,host] or err str
 		"""
+		# url - https://ecchi.iwara.tv/api/video/4kbwafpkz0tyv3k4m
 		url = self.api_url.format(link.split("/")[-1])
 		logger.debug(f"<api_url> - {url}")
 		resp = self.get_resp(url,headers=self.headers)
@@ -240,7 +282,7 @@ class IwaraDownloader:
 
 		res = []
 		for h,t in zip(href_list,title_list):
-			res.append({"link":h,"title":"{}--{}".format(t,h.split("videos/")[-1].split("?")[0])})
+			res.append({"link":h,"title":f"{t}--{h.split('videos/')[-1].split('?')[0]}"})
 
 		logger.debug("Exit Function")
 		return res,total_pageNum
@@ -297,6 +339,7 @@ class IwaraDownloader:
 			user_path = self.check_folder(link)
 			for video in user_video_links:
 				video["path"] = user_path
+			# [{link, title, path}, {...}, ...]
 			return user_video_links
 
 		logger.debug(f"<link>:{link} type:Video")
@@ -310,17 +353,14 @@ class IwaraDownloader:
 		elif title in self.error_code_list.keys():
 			return title
 
-		return [{"link":link,"title":title,"path":self.root_path}]
+		return [{"link":link, "title":f"{title}--{link.split('videos/')[-1].split('?')[0]}", "path":self.root_path}]
 
-	def download(self,host,source_url,file_path):
+	def download(self,args,source_url,file_path):
 		"""
 		下载原始视频
 		"""
-		# file_headers = {
-		# 	"host":host,
-		# 	"user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3741.400 QQBrowser/10.5.3863.400",
-		# }
 		response = self.get_resp(source_url,headers=self.page_headers,stream=True)
+		logger.info(f"视频标题: {args[0]['title']} - 大小: {byte2size(response.headers['content-length'])} 正在下载")
 
 		# content_size = int(response.headers['content-length']) # 获得文件大小(字节)
 		# data_count = 0	# 计数
@@ -328,48 +368,73 @@ class IwaraDownloader:
 		with open(file_path, "wb") as file:
 			for data in response.iter_content(chunk_size=chunk_size):
 				file.write(data)
+		return response
 
 	@logger.catch
 	def iwara_process(self,*args):
 		"""
 		子线程任务函数
 		"""
-		link,title,path = args[0]["link"],args[0]["title"],args[0]["path"]
-		file_path = f"{os.path.join(path,title)}.mp4"
+		link, title, path = args[0]["link"], args[0]["title"], args[0]["path"]
+		file_path = f"{os.path.join(path, title)}.mp4"
 		logger.debug(f"<file_path> - {file_path}")
 		logger.debug(f"<link> - {link}")
-		try:
-			if os.path.exists(file_path) and os.path.getsize(file_path) > 100000:
-				logger.info(f"【{title}】已存在")
-				return 
-			else:
-				logger.info(f"【{title}】正在下载")
-				data = self.get_data(link)
 
-				# err code
-				if type(data) == type("") and data in self.error_code_list.keys():
-					err_code = self.error_code_list.get(data,'NotFoundErrorCode')
-					logger.info(f"【{title}】 {err_code}")
-					return
-				else:
-					source_url,host = data[0],data[1]
+		# 检测本地文件
+		if os.path.exists(file_path) and os.path.getsize(file_path) > 100000:
+			logger.success(f"视频标题: {title} 已存在")
+			return 
+		# else: 
+		# 	logger.info(f"视频标题: {title} 正在下载")
+
+		try:
+			data = self.get_data(link)
+			# err code
+			if type(data) == type("") and data in self.error_code_list.keys():
+				err_code = self.error_code_list.get(data,'NotFoundErrorCode')
+				logger.info(f"视频标题: {title} | err_code: {err_code}")
+				return
+			else:
+				source_url,host = data[0],data[1]
 		except Exception as e:
 			logger.warning(f"Exception - {e}")
 			return 
 		else:
 			try:
-				self.download(host,source_url,file_path)
+				response = self.download(args,source_url,file_path)
 			except Exception as e:
-				logger.warning(f"【{title}】下载失败-->{e}")
+				logger.warning(f"视频标题: {title} 视频下载失败,将在其他任务完成后进行重试.")
+				logger.error(f"""错误视频链接: {link} - 视频标题: {title} - """\
+						f"""服务器:{byte2size(response.headers['content-length'])} - 本地:{byte2size(os.path.getsize(file_path))}""")
+				ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
+				# os.remove(file_path)
 			else:
-				logger.success(f"【{title}】下载成功 让我歇歇,冲不动了~")
-				time.sleep(0.5)
+				# 3.9 视频完整性校验
+				if not check_video(response, file_path):
+					logger.warning(f"视频标题: {title} 视频完整性校验失败,将在其他任务完成后进行重试.")
+					logger.error(f"""错误视频链接: {link} - 视频标题: {title} - """\
+						f"""服务器:{byte2size(response.headers['content-length'])} - 本地:{byte2size(os.path.getsize(file_path))}""")
+					ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
+					os.remove(file_path)
+				else:
+					logger.success(f"视频标题: {title} - {byte2size(response.headers['content-length'])}下载成功 让我歇歇,冲不动了~")
+					
+			# 判断/移除重试任务
+			logger.debug(f"{ERR_TASK_LIST} - {args}")
+			for _ in ERR_TASK_LIST[::]:
+				if args == _["args"]:
+					if _["count"] == 0:
+						ERR_TASK_LIST.remove(_)
+						logger.warning(f"视频标题: {title} 下载失败,无重试次数. 请参考log文件夹下的ERROR日志~")
+					else:
+						logger.warning(f"视频标题: {title} 剩余重试次数: {_['count']}次")
+						_["count"] -= 1
+						return self.iwara_process(*args)
+					break
 
-			
-			# url,host = self.get_data(iwara_link)
-			# host,url,data = self.get_data(iwara_link)
-			# self.download(host,filename,url,data)
-			# self.download(self.get_data(iwara_link))
+			# if args in [_["args"] for _ in ERR_TASK_LIST]:
+			# 	[(ERR_TASK_LIST.remove(_)) for _ in ERR_TASK_LIST[::] if _ == args]
+			time.sleep(0.5)
 
 	def main(self):
 		"""
@@ -391,7 +456,8 @@ class IwaraDownloader:
 		3.无视频 https://ecchi.iwara.tv/users/lilan0538
 		4.无效作者主页 https://ecchi.iwara.tv/users/测试
 		"""
-		pool = ThreadPool(8)
+		pool = ThreadPool(THREAD_NUM)
+		# 下载
 		try:
 			for link in self.original_links:
 				# i站相关链接下载
@@ -411,16 +477,21 @@ class IwaraDownloader:
 						logger.debug(f"link_list - {link_list}")
 						
 						for l in link_list:
-							pool.put(self.iwara_process,(l,),callback)
+							pool.put(self.iwara_process, (l, ), callback)
 		except Exception as e:
 			logger.warning(f"Exception - {e}")
+		# 错误重试
+		else:
+			logger.debug(ERR_TASK_LIST)
+			for l in ERR_TASK_LIST:
+				pool.put(self.iwara_process, (l, ), callback)
 		finally:
 			pool.close()
-		
+
 
 if __name__ == '__main__':
-	logger.success(f"=== 欢迎使用<iwara下载脚本 {VERSION}> ===")
-	logger.success(f"GITHUB: https://github.com/WriteCode-ChangeWorld/Tools 欢迎Star~")
+	logger.success(f"=== 欢迎使用< iwara下载脚本 {VERSION} > ===")
+	logger.success(f"Github地址: https://github.com/WriteCode-ChangeWorld/Tools 欢迎Star~")
 
 	logger.info("下载作者视频则输入作者主页链接...")
 	logger.info("如: https://ecchi.iwara.tv/users/qishi\n")
@@ -432,7 +503,7 @@ if __name__ == '__main__':
 	
 	input_links = []
 	while True:
-		input_iwara_link = input("现在输入Iwara链接:")
+		input_iwara_link = input("现在输入Iwara链接: ")
 		if input_iwara_link == "":
 			pass
 		elif input_iwara_link == "go":
