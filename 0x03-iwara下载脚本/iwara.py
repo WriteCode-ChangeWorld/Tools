@@ -3,14 +3,12 @@ import re
 import sys
 import json
 import time
-from numpy import size
 import requests
 from lxml import etree
 from loguru import logger
 from urllib.parse import unquote
 # 强制取消警告
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from requests.packages.urllib3.util import url
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
