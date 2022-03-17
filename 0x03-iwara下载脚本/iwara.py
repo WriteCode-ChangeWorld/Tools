@@ -135,7 +135,7 @@ class IwaraDownloader:
 		logger.debug(f"输入链接 - {self.original_links}")
 
 		# 初始化下载主目录
-		self.root_path = os.path.abspath(__file__) if not ROOT_DIR else ROOT_DIR
+		self.root_path = os.path.abspath(os.path.dirname(__file__)) if not ROOT_DIR else ROOT_DIR
 		if not os.path.exists(self.root_path):os.mkdir(self.root_path)
 
 		self.error_code_list = {

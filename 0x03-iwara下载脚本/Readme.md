@@ -2,7 +2,7 @@
 
 ---
 
-功能：
+## 功能
 
 - [x] 支持下载`iwara`用户公开投稿的所有视频，视频文件下载存放在`./down/用户名`或`ROOT_DIR/用户名`文件夹下
   - [x] 支持自定义下载路径 (`ROOT_DIR=your path`)
@@ -15,20 +15,31 @@
 
 
 
-使用方法：
+## 使用方法
+
+### 1、ROOT_DIR
+
+```python
+# 填写下载目录
+ROOT_DIR = r"your root dir"
+
+# 若需要下载private视频,可自行填入账号cookie
+# 实验性
+cookie = "your cookie"
+```
+
+
+
+### 2、下载依赖并启动
 
 ```
 pip install -r requirement.txt
 python iwara.py
 ```
 
-其他：
-
-+ 出现长时间卡住或不打印log的情况，使用`Ctrl + C`或直接关掉窗口以重新启动脚本
 
 
-
-运行截图
+## 运行截图
 
 ![](./img/1.png)
 
