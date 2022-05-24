@@ -93,6 +93,12 @@ def dealwith_title(title):
 					replace(".", "_")
 	return title
 
+def check_errTask_exists(data, err_task_list):
+	for _ in err_task_list:
+		if data == _["args"]:
+			return True
+	return False
+
 
 class IwaraDownloader:
 	"""
@@ -411,7 +417,8 @@ class IwaraDownloader:
 				logger.warning(f"视频标题: {title} 视频下载失败,将在其他任务完成后进行重试.")
 				logger.error(f"""错误视频链接: {link} - 视频标题: {title} - """\
 						f"""服务器:{byte2size(response.headers['content-length'])} - 本地:{byte2size(os.path.getsize(file_path))}""")
-				ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
+				if not check_errTask_exists(args, ERR_TASK_LIST):
+					ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
 				# os.remove(file_path)
 			else:
 				# 3.9 视频完整性校验
@@ -419,13 +426,15 @@ class IwaraDownloader:
 					logger.warning(f"视频标题: {title} 视频完整性校验失败,将在其他任务完成后进行重试.")
 					logger.error(f"""错误视频链接: {link} - 视频标题: {title} - """\
 						f"""服务器:{byte2size(response.headers['content-length'])} - 本地:{byte2size(os.path.getsize(file_path))}""")
-					ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
+					if not check_errTask_exists(args, ERR_TASK_LIST):
+						ERR_TASK_LIST.append({"args": args, "count": RETRY_COUNT})
 					os.remove(file_path)
 				else:
 					logger.success(f"视频标题: {title} - {byte2size(response.headers['content-length'])}下载成功 让我歇歇,冲不动了~")
 					
 			# 判断/移除重试任务
-			logger.debug(f"{ERR_TASK_LIST} - {args}")
+			logger.debug(f"ERR_TASK_LIST 错误重试任务剩余: {len(ERR_TASK_LIST)}个")
+			logger.debug(ERR_TASK_LIST)
 			for _ in ERR_TASK_LIST[::]:
 				if args == _["args"]:
 					if _["count"] == 0:
@@ -437,8 +446,6 @@ class IwaraDownloader:
 						return self.iwara_process(*args)
 					break
 
-			# if args in [_["args"] for _ in ERR_TASK_LIST]:
-			# 	[(ERR_TASK_LIST.remove(_)) for _ in ERR_TASK_LIST[::] if _ == args]
 			time.sleep(0.5)
 
 	def main(self):
