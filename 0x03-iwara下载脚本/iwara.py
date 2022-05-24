@@ -17,7 +17,7 @@ from thread_pool import *
 
 # ======================= CONFIG =================== #
 # Version
-VERSION = "V1.0.5"
+VERSION = "V1.0.6"
 # 如果需要下载private视频,则将自己的cookie填入此处
 cookie = ""
 # 设置为True 开启DEBUG模式
@@ -86,6 +86,12 @@ def byte2size(value):
 		if (value/size) < 1:
 			return "%.2f%s" % (value, units[i])
 		value = value/size
+
+def dealwith_title(title):
+	title = re.sub('[\/:*?"<>|]', '_', title)
+	title = title.replace("&amp;", "&").replace("\u3000", "").\
+					replace(".", "_")
+	return title
 
 
 class IwaraDownloader:
@@ -184,10 +190,8 @@ class IwaraDownloader:
 		if type(html) == type(None):
 			return "NetWorkTimeoutError"
 		response = html.text.replace("\u3000","")
-		r = re.findall("<title>(.*?)</title>",response)[0].split("| Iwara")[0]
-		title = re.sub('[\/:*?"<>|]','',r)
-		title = title.replace("&amp;","&").replace("\u3000","").\
-						replace(" ","").replace(".","")
+		r = re.findall("<title>(.*?)</title>", response)[0].split("| Iwara")[0]
+		title = dealwith_title(r)
 		return title
 
 	def get_data(self,link):
@@ -243,9 +247,8 @@ class IwaraDownloader:
 				href_list = [f"{self.iwara_host}{r}" for r in home_obj.xpath(href_expression)]
 				logger.info(f"User Have {len(href_list)} Videos. Not Video Page")
 				# 转义html字符
-				title_list = [re.sub('[\/:*?"<>|]','',r).
-								replace("&amp;","&").replace("\u3000","").
-								replace(" ","").replace(".","") for r in home_obj.xpath(title_expression)]
+				title_list = [dealwith_title(href) for href in href_list]
+
 				# 补充无Video Page的业务跳出条件
 				total_pageNum = -1
 			# 用户无视频
@@ -262,9 +265,7 @@ class IwaraDownloader:
 			href_list = ["{}{}".format(self.iwara_host,r) for r in obj.xpath("//h3[@class='title']/a/@href")]
 			# logger.info(f"Page Have {len(href_list)} Videos")
 			# 转义html字符
-			title_list = [re.sub('[\/:*?"<>|]','',r).
-								replace("&amp;","&").replace("\u3000","").
-								replace(" ","").replace(".","") for r in obj.xpath("//h3[@class='title']/a/text()")]
+			title_list = [dealwith_title(r) for r in obj.xpath(""".//div[@class='field-item even']/a/img/@title""")]
 			# 页数
 			try:
 				total_pageNum = int(obj.xpath("//li[@class='pager-last last']//@href")[0].split("page=")[-1])
@@ -325,6 +326,12 @@ class IwaraDownloader:
 				if self.page_num == -1:
 					break
 
+				# 无效用户/视频链接 用户无视频
+				if user_video_links == [] and \
+					page_video_links == [] and \
+					total_pageNum == 0:
+					break
+
 			# 用户无视频
 			if user_video_links == []:
 				return "EmptyVideoLinks"
@@ -369,7 +376,7 @@ class IwaraDownloader:
 		return response
 
 	@logger.catch
-	def iwara_process(self,*args):
+	def iwara_process(self, *args):
 		"""
 		子线程任务函数
 		"""
