@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import time
+import glob
 import requests
 from lxml import etree
 from loguru import logger
@@ -392,11 +393,17 @@ class IwaraDownloader:
 		logger.debug(f"<link> - {link}")
 
 		# 检测本地文件
-		if os.path.exists(file_path) and os.path.getsize(file_path) > 100000:
+		isExists = False
+		video_id = title.split("--")[-1]
+		path_expression = os.path.join(path, f"**--{video_id}.mp4")
+
+		for fn in glob.glob(path_expression):
+			isExists = True
+			break
+
+		if isExists and os.path.getsize(glob.glob(path_expression)[0]) > 100000:
 			logger.success(f"视频标题: {title} 已存在")
 			return 
-		# else: 
-		# 	logger.info(f"视频标题: {title} 正在下载")
 
 		try:
 			data = self.get_data(link)
