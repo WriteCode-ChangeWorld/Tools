@@ -18,7 +18,7 @@ from thread_pool import *
 
 # ======================= CONFIG =================== #
 # Version
-VERSION = "V1.0.6"
+VERSION = "V1.0.8"
 # 如果需要下载private视频,则将自己的cookie填入此处
 cookie = ""
 # 设置为True 开启DEBUG模式
