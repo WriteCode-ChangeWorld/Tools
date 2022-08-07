@@ -253,7 +253,7 @@ class IwaraDownloader:
 				href_list = [f"{self.iwara_host}{r}" for r in home_obj.xpath(href_expression)]
 				logger.info(f"User Have {len(href_list)} Videos. Not Video Page")
 				# 转义html字符
-				title_list = [dealwith_title(href) for href in href_list]
+				title_list = [self.get_title(href) for href in href_list]
 
 				# 补充无Video Page的业务跳出条件
 				total_pageNum = -1
