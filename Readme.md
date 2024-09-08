@@ -18,4 +18,5 @@
 | 0x08-绅士小站2                     | 绅士小站爬虫（MySQL+Aria2）By [WolfBolin](https://github.com/wolfbolin) | 2021/7/2                               |
 | 0x09-pixiv2eagle                   | Pixiv插画tag导入Eagle                                        | 2021/11/7                              |
 | 0x0a-碧蓝航线-静态立绘解密加密工具 | 用于碧蓝航线静态立绘加密与解密的脚本                         | 2022/1/4                               |
+| 0x0b-批量拖拽-文件后缀名重命名工具 | 可以拖拽进行批量文件名后缀命名的GUI                          | 2024/9/8                               |
 
