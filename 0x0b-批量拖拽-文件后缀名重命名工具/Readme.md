@@ -11,7 +11,7 @@
 + 涉及修改的文件、未知类型文件会高亮显示
 + 支持自定义跳过的后缀名
 
-![image-20240908162937224](C:\Users\yuhao\AppData\Roaming\Typora\typora-user-images\image-20240908162937224.png)
+![image-20240908162937224](./img/0.png)
 
 
 
