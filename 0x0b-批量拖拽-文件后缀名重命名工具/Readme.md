@@ -1,4 +1,4 @@
-## 批量拖拽-文件后缀名重命名工具 v1.0
+## 批量拖拽-文件后缀名重命名工具 v1.1
 
 ### 功能
 
@@ -27,6 +27,6 @@
 pyinstaller打包命令
 
 ```bash
-pyinstaller --onefile --noconsole -o FileRenamer.exe filerenamer.py
+pyinstaller --onefile --noconsole -n "FileRenamer v1.1.exe" filerenamer.py
 ```
 
