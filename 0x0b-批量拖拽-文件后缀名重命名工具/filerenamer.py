@@ -112,21 +112,21 @@ class DropFile(wx.Frame):
 
         # ================= 后缀名处理 ================= #
         # 跳过名单的后缀名 -> 跳过
-        if ext in skip_formats:
+        if ext in self.skip_formats:
             self.WriteLog(f"跳过文件 - {file_path}\n")
             return 
 
         # 无后缀名 -> 添加默认后缀名
         if not ext and fullfname == fname:
-            dst = os.path.join(dir, f"{fname}{default_suffix}")
+            dst = os.path.join(dir, f"{fname}{self.default_suffix}")
             os.rename(file_path, dst)
             self.WriteLog(f"添加后缀名 - {dst}\n", level="success", color="blue")
             return 
         
         # 全中文后缀名/检测名单的后缀名 -> 修改为默认后缀名
         if bool(re.match(r"^[\u4e00-\u9fa5]+$", ext[1:])) \
-            or ext in target_formats:
-            dst = os.path.join(dir, f"{fname}{default_suffix}")
+            or ext in self.target_formats:
+            dst = os.path.join(dir, f"{fname}{self.default_suffix}")
             os.rename(file_path, dst)
             self.WriteLog(f"重命名文件 - {dst}\n", level="success", color="blue")
             return 
