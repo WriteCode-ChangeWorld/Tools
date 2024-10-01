@@ -27,6 +27,6 @@
 pyinstaller打包命令
 
 ```bash
-pyinstaller --onefile --noconsole filerenamer.py
+pyinstaller --onefile --noconsole -o FileRenamer.exe filerenamer.py
 ```
 
